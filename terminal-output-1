@@ -1,0 +1,901 @@
+Using username "ec2-user".
+Authenticating with public key "imported-openssh-key"
+
+       __|  __|_  )
+       _|  (     /   Amazon Linux 2 AMI
+      ___|\___|___|
+
+https://aws.amazon.com/amazon-linux-2/
+[ec2-user@ip-172-31-87-113 ~]$ sudo su
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# yum update -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+No packages marked for update
+[root@ip-172-31-87-113 ec2-user]# yum update -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+No packages marked for update
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# aws configure
+AWS Access Key ID [None]:
+AWS Secret Access Key [None]:
+Default region name [None]: us-east-1
+Default output format [None]: table
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:uqT+Mu+to06LMBn/t+1Pc1HYoF9h9SxoCkb0eniTlvw root@ip-172-31-87-113.ec2.internal
+The key's randomart image is:
++---[RSA 2048]----+
+|       .o   . o..|
+|       . . . * o.|
+|        o o + = o|
+|       . = * o . |
+|.       S X o    |
+| +     . + o .   |
+|+ . . o   o E    |
+| o +o+o+ . o     |
+|  .oBOB=+..      |
++----[SHA256]-----+
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# aws s3 mb s3://dev.k8s.pk.com
+make_bucket failed: s3://dev.k8s.pk.com Unable to locate credentials
+[root@ip-172-31-87-113 ec2-user]# aws s3 ls
+Unable to locate credentials. You can configure credentials by running "aws configure".
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# aws s3 mb s3://dev.k8s.pk.com
+make_bucket: dev.k8s.pk.com
+[root@ip-172-31-87-113 ec2-user]# aws s3 ls
+2022-06-16 06:45:33 dev.k8s.pk.com
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubase/release/stable.txt)/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+# sudo mv ./kubectl /usr/local/bin/kubectl
+sudo mv ./kubectl /bin/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 43.5M  100 43.5M    0     0   147M      0 --:--:-- --:--:-- --:--:--  147M
+[root@ip-172-31-87-113 ec2-user]# chmod +x ./kubectl
+[root@ip-172-31-87-113 ec2-user]# # sudo mv ./kubectl /usr/local/bin/kubectl
+[root@ip-172-31-87-113 ec2-user]# sudo mv ./kubectl /bin/
+[root@ip-172-31-87-113 ec2-user]# curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kuberneteses/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x kops-linux-amd64
+sudo mv kops-linux-amd64 /usr/local/bin/kops
+sudo mv /usr/local/bin/kops /bin/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100  157M  100  157M    0     0   130M      0  0:00:01  0:00:01 --:--:--  137M
+[root@ip-172-31-87-113 ec2-user]# chmod +x kops-linux-amd64
+[root@ip-172-31-87-113 ec2-user]# sudo mv kops-linux-amd64 /usr/local/bin/kops
+[root@ip-172-31-87-113 ec2-user]# sudo mv /usr/local/bin/kops /bin/
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# export KOPS_STATE_STORE=s3://dev.k8s.pk.com
+[root@ip-172-31-87-113 ec2-user]# kops create cluster --cloud=aws \
+> --zones=us-east-1a,us-east-1b \
+> --name=dev.k8s.pk.com \
+> --node-count 2 \
+> --node-size t2.micro \
+> --master-size t3.small \
+> --dns-zone=pk.com \
+> --dns private
+I0616 06:46:16.506198    3453 new_cluster.go:1102]  Cloud Provider ID = aws
+I0616 06:46:16.683695    3453 subnets.go:182] Assigned CIDR 172.20.32.0/19 to subnet us-east-1a
+I0616 06:46:16.683830    3453 subnets.go:182] Assigned CIDR 172.20.64.0/19 to subnet us-east-1b
+Previewing changes that will be made:
+
+I0616 06:46:17.701267    3453 executor.go:111] Tasks: 0 done / 97 total; 45 can run
+W0616 06:46:17.762868    3453 vfs_castore.go:379] CA private key was not found
+I0616 06:46:18.005528    3453 executor.go:111] Tasks: 45 done / 97 total; 20 can run
+I0616 06:46:18.447387    3453 executor.go:111] Tasks: 65 done / 97 total; 29 can run
+I0616 06:46:18.858883    3453 executor.go:111] Tasks: 94 done / 97 total; 3 can run
+I0616 06:46:18.953917    3453 executor.go:111] Tasks: 97 done / 97 total; 0 can run
+Will create resources:
+  AutoscalingGroup/master-us-east-1a.masters.dev.k8s.pk.com
+        Granularity             1Minute
+        InstanceProtection      false
+        LaunchTemplate          name:master-us-east-1a.masters.dev.k8s.pk.com
+        LoadBalancers           []
+        MaxSize                 1
+        Metrics                 [GroupDesiredCapacity, GroupInServiceInstances, GroupMaxSize, GroupMinSize, GroupPendingInstances, GroupStandbyInupTerminatingInstances, GroupTotalInstances]
+        MinSize                 1
+        Subnets                 [name:us-east-1a.dev.k8s.pk.com]
+        SuspendProcesses        []
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, k8s.io/cluster-autoscaler/node-template/label/kubernetes.io/role: mo/cluster-autoscaler/node-template/label/node-role.kubernetes.io/control-plane: , k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/kops-ki: , k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup: master-us-east-1a, kops.k8s.io/instancegroup: master-us-east-1a, Nus-east-1a.masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.io/mastecluster-autoscaler/node-template/label/node.kubernetes.io/exclude-from-external-load-balancers: , k8s.io/role/master: 1}
+        TargetGroups            []
+
+  AutoscalingGroup/nodes-us-east-1a.dev.k8s.pk.com
+        Granularity             1Minute
+        InstanceProtection      false
+        LaunchTemplate          name:nodes-us-east-1a.dev.k8s.pk.com
+        LoadBalancers           []
+        MaxSize                 1
+        Metrics                 [GroupDesiredCapacity, GroupInServiceInstances, GroupMaxSize, GroupMinSize, GroupPendingInstances, GroupStandbyInupTerminatingInstances, GroupTotalInstances]
+        MinSize                 1
+        Subnets                 [name:us-east-1a.dev.k8s.pk.com]
+        SuspendProcesses        []
+        Tags                    {k8s.io/cluster-autoscaler/node-template/label/kubernetes.io/role: node, k8s.io/cluster-autoscaler/node-template/8s.io/instancegroup: nodes-us-east-1a, k8s.io/role/node: 1, kops.k8s.io/instancegroup: nodes-us-east-1a, Name: nodes-us-east-1a.dev.k8s.pk.com, Kster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.io/node: }
+        TargetGroups            []
+
+  AutoscalingGroup/nodes-us-east-1b.dev.k8s.pk.com
+        Granularity             1Minute
+        InstanceProtection      false
+        LaunchTemplate          name:nodes-us-east-1b.dev.k8s.pk.com
+        LoadBalancers           []
+        MaxSize                 1
+        Metrics                 [GroupDesiredCapacity, GroupInServiceInstances, GroupMaxSize, GroupMinSize, GroupPendingInstances, GroupStandbyInupTerminatingInstances, GroupTotalInstances]
+        MinSize                 1
+        Subnets                 [name:us-east-1b.dev.k8s.pk.com]
+        SuspendProcesses        []
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.8s.io/cluster-autoscaler/node-template/label/kubernetes.io/role: node, k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup: n-1b, k8s.io/role/node: 1, kops.k8s.io/instancegroup: nodes-us-east-1b, Name: nodes-us-east-1b.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com}
+        TargetGroups            []
+
+  DHCPOptions/dev.k8s.pk.com
+        DomainName              ec2.internal
+        DomainNameServers       AmazonProvidedDNS
+        Shared                  false
+        Tags                    {Name: dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  EBSVolume/a.etcd-events.dev.k8s.pk.com
+        AvailabilityZone        us-east-1a
+        Encrypted               true
+        SizeGB                  20
+        Tags                    {Name: a.etcd-events.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, k8s.io/etcd/events: a/a, k8s.io/role/mastnetes.io/cluster/dev.k8s.pk.com: owned}
+        VolumeIops              3000
+        VolumeThroughput        125
+        VolumeType              gp3
+
+  EBSVolume/a.etcd-main.dev.k8s.pk.com
+        AvailabilityZone        us-east-1a
+        Encrypted               true
+        SizeGB                  20
+        Tags                    {k8s.io/etcd/main: a/a, k8s.io/role/master: 1, kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: a.etcd-main.dev KubernetesCluster: dev.k8s.pk.com}
+        VolumeIops              3000
+        VolumeThroughput        125
+        VolumeType              gp3
+
+  IAMInstanceProfile/masters.dev.k8s.pk.com
+        Tags                    {Name: masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+        Shared                  false
+
+  IAMInstanceProfile/nodes.dev.k8s.pk.com
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: nodes.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com}
+        Shared                  false
+
+  IAMInstanceProfileRole/masters.dev.k8s.pk.com
+        InstanceProfile         name:masters.dev.k8s.pk.com id:masters.dev.k8s.pk.com
+        Role                    name:masters.dev.k8s.pk.com
+
+  IAMInstanceProfileRole/nodes.dev.k8s.pk.com
+        InstanceProfile         name:nodes.dev.k8s.pk.com id:nodes.dev.k8s.pk.com
+        Role                    name:nodes.dev.k8s.pk.com
+
+  IAMRole/masters.dev.k8s.pk.com
+        Tags                    {Name: masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+        ExportWithID            masters
+
+  IAMRole/nodes.dev.k8s.pk.com
+        Tags                    {KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: nodes.dev.k8s.pk.com}
+        ExportWithID            nodes
+
+  IAMRolePolicy/master-policyoverride
+        Role                    name:masters.dev.k8s.pk.com
+        Managed                 true
+
+  IAMRolePolicy/masters.dev.k8s.pk.com
+        Role                    name:masters.dev.k8s.pk.com
+        Managed                 false
+
+  IAMRolePolicy/node-policyoverride
+        Role                    name:nodes.dev.k8s.pk.com
+        Managed                 true
+
+  IAMRolePolicy/nodes.dev.k8s.pk.com
+        Role                    name:nodes.dev.k8s.pk.com
+        Managed                 false
+
+  InternetGateway/dev.k8s.pk.com
+        VPC                     name:dev.k8s.pk.com
+        Shared                  false
+        Tags                    {KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: dev.k8s.pk.com}
+
+  Keypair/apiserver-aggregator-ca
+        Subject                 cn=apiserver-aggregator-ca
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/etcd-clients-ca
+        Subject                 cn=etcd-clients-ca
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/etcd-manager-ca-events
+        Subject                 cn=etcd-manager-ca-events
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/etcd-manager-ca-main
+        Subject                 cn=etcd-manager-ca-main
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/etcd-peers-ca-events
+        Subject                 cn=etcd-peers-ca-events
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/etcd-peers-ca-main
+        Subject                 cn=etcd-peers-ca-main
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/kubernetes-ca
+        Subject                 cn=kubernetes-ca
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  Keypair/service-account
+        Subject                 cn=service-account
+        Issuer
+        Type                    ca
+        LegacyFormat            false
+
+  LaunchTemplate/master-us-east-1a.masters.dev.k8s.pk.com
+        AssociatePublicIP       true
+        CPUCredits
+        HTTPPutResponseHopLimit 3
+        HTTPTokens              required
+        HTTPProtocolIPv6        disabled
+        IAMInstanceProfile      name:masters.dev.k8s.pk.com id:masters.dev.k8s.pk.com
+        ImageID                 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220509
+        InstanceMonitoring      false
+        InstanceType            t3.small
+        IPv6AddressCount        0
+        RootVolumeIops          3000
+        RootVolumeSize          64
+        RootVolumeThroughput    125
+        RootVolumeType          gp3
+        RootVolumeEncryption    true
+        RootVolumeKmsKey
+        SecurityGroups          [name:masters.dev.k8s.pk.com]
+        SpotPrice
+        Tags                    {k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.io/control-plane: , KubernetesCluster: dev.k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/kops-controller-pki: , k8s.io/cluster-autoscaler/node-template/label/kubernetes.io/role: io/cluster-autoscaler/node-template/label/node.kubernetes.io/exclude-from-external-load-balancers: , k8s.io/cluster-autoscaler/node-template/labekubernetes.io/master: , k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup: master-us-east-1a, k8s.io/role/master: 1, kops.kcegroup: master-us-east-1a, Name: master-us-east-1a.masters.dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  LaunchTemplate/nodes-us-east-1a.dev.k8s.pk.com
+        AssociatePublicIP       true
+        CPUCredits
+        HTTPPutResponseHopLimit 1
+        HTTPTokens              required
+        HTTPProtocolIPv6        disabled
+        IAMInstanceProfile      name:nodes.dev.k8s.pk.com id:nodes.dev.k8s.pk.com
+        ImageID                 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220509
+        InstanceMonitoring      false
+        InstanceType            t2.micro
+        IPv6AddressCount        0
+        RootVolumeIops          3000
+        RootVolumeSize          128
+        RootVolumeThroughput    125
+        RootVolumeType          gp3
+        RootVolumeEncryption    true
+        RootVolumeKmsKey
+        SecurityGroups          [name:nodes.dev.k8s.pk.com]
+        SpotPrice
+        Tags                    {k8s.io/cluster-autoscaler/node-template/label/kubernetes.io/role: node, k8s.io/cluster-autoscaler/node-template/8s.io/instancegroup: nodes-us-east-1a, k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.io/node: , k8s.io/role/node: 1, kops.k8egroup: nodes-us-east-1a, Name: nodes-us-east-1a.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  LaunchTemplate/nodes-us-east-1b.dev.k8s.pk.com
+        AssociatePublicIP       true
+        CPUCredits
+        HTTPPutResponseHopLimit 1
+        HTTPTokens              required
+        HTTPProtocolIPv6        disabled
+        IAMInstanceProfile      name:nodes.dev.k8s.pk.com id:nodes.dev.k8s.pk.com
+        ImageID                 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20220509
+        InstanceMonitoring      false
+        InstanceType            t2.micro
+        IPv6AddressCount        0
+        RootVolumeIops          3000
+        RootVolumeSize          128
+        RootVolumeThroughput    125
+        RootVolumeType          gp3
+        RootVolumeEncryption    true
+        RootVolumeKmsKey
+        SecurityGroups          [name:nodes.dev.k8s.pk.com]
+        SpotPrice
+        Tags                    {k8s.io/cluster-autoscaler/node-template/label/node-role.kubernetes.io/node: , k8s.io/cluster-autoscaler/node-temkubernetes.io/role: node, k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup: nodes-us-east-1b, k8s.io/role/node: 1, kops.k8egroup: nodes-us-east-1b, Name: nodes-us-east-1b.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  ManagedFile/cluster-completed.spec
+        Base                    s3://dev.k8s.pk.com/dev.k8s.pk.com
+        Location                cluster-completed.spec
+
+  ManagedFile/dev.k8s.pk.com-addons-aws-ebs-csi-driver.addons.k8s.io-k8s-1.17
+        Location                addons/aws-ebs-csi-driver.addons.k8s.io/k8s-1.17.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-bootstrap
+        Location                addons/bootstrap-channel.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-core.addons.k8s.io
+        Location                addons/core.addons.k8s.io/v1.4.0.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-coredns.addons.k8s.io-k8s-1.12
+        Location                addons/coredns.addons.k8s.io/k8s-1.12.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-dns-controller.addons.k8s.io-k8s-1.12
+        Location                addons/dns-controller.addons.k8s.io/k8s-1.12.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-kops-controller.addons.k8s.io-k8s-1.16
+        Location                addons/kops-controller.addons.k8s.io/k8s-1.16.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-kubelet-api.rbac.addons.k8s.io-k8s-1.9
+        Location                addons/kubelet-api.rbac.addons.k8s.io/k8s-1.9.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-leader-migration.rbac.addons.k8s.io-k8s-1.23
+        Location                addons/leader-migration.rbac.addons.k8s.io/k8s-1.23.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-limit-range.addons.k8s.io
+        Location                addons/limit-range.addons.k8s.io/v1.5.0.yaml
+
+  ManagedFile/dev.k8s.pk.com-addons-storage-aws.addons.k8s.io-v1.15.0
+        Location                addons/storage-aws.addons.k8s.io/v1.15.0.yaml
+
+  ManagedFile/etcd-cluster-spec-events
+        Base                    s3://dev.k8s.pk.com/dev.k8s.pk.com/backups/etcd/events
+        Location                /control/etcd-cluster-spec
+
+  ManagedFile/etcd-cluster-spec-main
+        Base                    s3://dev.k8s.pk.com/dev.k8s.pk.com/backups/etcd/main
+        Location                /control/etcd-cluster-spec
+
+  ManagedFile/kops-version.txt
+        Base                    s3://dev.k8s.pk.com/dev.k8s.pk.com
+        Location                kops-version.txt
+
+  ManagedFile/manifests-etcdmanager-events
+        Location                manifests/etcd/events.yaml
+
+  ManagedFile/manifests-etcdmanager-main
+        Location                manifests/etcd/main.yaml
+
+  ManagedFile/manifests-static-kube-apiserver-healthcheck
+        Location                manifests/static/kube-apiserver-healthcheck.yaml
+
+  ManagedFile/nodeupconfig-master-us-east-1a
+        Location                igconfig/master/master-us-east-1a/nodeupconfig.yaml
+
+  ManagedFile/nodeupconfig-nodes-us-east-1a
+        Location                igconfig/node/nodes-us-east-1a/nodeupconfig.yaml
+
+  ManagedFile/nodeupconfig-nodes-us-east-1b
+        Location                igconfig/node/nodes-us-east-1b/nodeupconfig.yaml
+
+  Route/0.0.0.0/0
+        RouteTable              name:dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        InternetGateway         name:dev.k8s.pk.com
+
+  Route/::/0
+        RouteTable              name:dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        InternetGateway         name:dev.k8s.pk.com
+
+  RouteTable/dev.k8s.pk.com
+        VPC                     name:dev.k8s.pk.com
+        Shared                  false
+        Tags                    {kubernetes.io/kops/role: public, Name: dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/om: owned}
+
+  RouteTableAssociation/us-east-1a.dev.k8s.pk.com
+        RouteTable              name:dev.k8s.pk.com
+        Subnet                  name:us-east-1a.dev.k8s.pk.com
+
+  RouteTableAssociation/us-east-1b.dev.k8s.pk.com
+        RouteTable              name:dev.k8s.pk.com
+        Subnet                  name:us-east-1b.dev.k8s.pk.com
+
+  Secret/admin
+
+  Secret/kube
+
+  Secret/kube-proxy
+
+  Secret/kubelet
+
+  Secret/system:controller_manager
+
+  Secret/system:dns
+
+  Secret/system:logging
+
+  Secret/system:monitoring
+
+  Secret/system:scheduler
+
+  SecurityGroup/masters.dev.k8s.pk.com
+        Description             Security group for masters
+        VPC                     name:dev.k8s.pk.com
+        RemoveExtraRules        [port=22, port=443, port=2380, port=2381, port=4001, port=4002, port=4789, port=179, port=8443]
+        Tags                    {Name: masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  SecurityGroup/nodes.dev.k8s.pk.com
+        Description             Security group for nodes
+        VPC                     name:dev.k8s.pk.com
+        RemoveExtraRules        [port=22]
+        Tags                    {Name: nodes.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-0.0.0.0/0-ingress-tcp-22to22-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        Protocol                tcp
+        FromPort                22
+        ToPort                  22
+        Tags                    {Name: from-0.0.0.0/0-ingress-tcp-22to22-masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-0.0.0.0/0-ingress-tcp-22to22-nodes.dev.k8s.pk.com
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        Protocol                tcp
+        FromPort                22
+        ToPort                  22
+        Tags                    {Name: from-0.0.0.0/0-ingress-tcp-22to22-nodes.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/c8s.pk.com: owned}
+
+  SecurityGroupRule/from-0.0.0.0/0-ingress-tcp-443to443-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        Protocol                tcp
+        FromPort                443
+        ToPort                  443
+        Tags                    {KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-0.0.0.0/0-ingress-tcpsters.dev.k8s.pk.com}
+
+  SecurityGroupRule/from-::/0-ingress-tcp-22to22-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        Protocol                tcp
+        FromPort                22
+        ToPort                  22
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-::/0-ingress-tcp-22to22-masters.dev.k8s.pk.com, Kubernetev.k8s.pk.com}
+
+  SecurityGroupRule/from-::/0-ingress-tcp-22to22-nodes.dev.k8s.pk.com
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        Protocol                tcp
+        FromPort                22
+        ToPort                  22
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-::/0-ingress-tcp-22to22-nodes.dev.k8s.pk.com, Kubernetes.k8s.pk.com}
+
+  SecurityGroupRule/from-::/0-ingress-tcp-443to443-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        Protocol                tcp
+        FromPort                443
+        ToPort                  443
+        Tags                    {Name: from-::/0-ingress-tcp-443to443-masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cls.pk.com: owned}
+
+  SecurityGroupRule/from-masters.dev.k8s.pk.com-egress-all-0to0-0.0.0.0/0
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        Egress                  true
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-masters.dev.k8s.pk.com-egress-all-0to0-0.0.0.0/0, Kubern dev.k8s.pk.com}
+
+  SecurityGroupRule/from-masters.dev.k8s.pk.com-egress-all-0to0-::/0
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        Egress                  true
+        Tags                    {Name: from-masters.dev.k8s.pk.com-egress-all-0to0-::/0, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/clustercom: owned}
+
+  SecurityGroupRule/from-masters.dev.k8s.pk.com-ingress-all-0to0-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        SourceGroup             name:masters.dev.k8s.pk.com
+        Tags                    {Name: from-masters.dev.k8s.pk.com-ingress-all-0to0-masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kucluster/dev.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-masters.dev.k8s.pk.com-ingress-all-0to0-nodes.dev.k8s.pk.com
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        SourceGroup             name:masters.dev.k8s.pk.com
+        Tags                    {Name: from-masters.dev.k8s.pk.com-ingress-all-0to0-nodes.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubeuster/dev.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-egress-all-0to0-0.0.0.0/0
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        CIDR                    0.0.0.0/0
+        Egress                  true
+        Tags                    {Name: from-nodes.dev.k8s.pk.com-egress-all-0to0-0.0.0.0/0, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluspk.com: owned}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-egress-all-0to0-::/0
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        IPv6CIDR                ::/0
+        Egress                  true
+        Tags                    {Name: from-nodes.dev.k8s.pk.com-egress-all-0to0-::/0, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dm: owned}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-ingress-all-0to0-nodes.dev.k8s.pk.com
+        SecurityGroup           name:nodes.dev.k8s.pk.com
+        SourceGroup             name:nodes.dev.k8s.pk.com
+        Tags                    {Name: from-nodes.dev.k8s.pk.com-ingress-all-0to0-nodes.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernter/dev.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-ingress-tcp-1to2379-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        Protocol                tcp
+        FromPort                1
+        ToPort                  2379
+        SourceGroup             name:nodes.dev.k8s.pk.com
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-nodes.dev.k8s.pk.com-ingress-tcp-1to2379-masters.dev.k8sernetesCluster: dev.k8s.pk.com}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-ingress-tcp-2382to4000-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        Protocol                tcp
+        FromPort                2382
+        ToPort                  4000
+        SourceGroup             name:nodes.dev.k8s.pk.com
+        Tags                    {Name: from-nodes.dev.k8s.pk.com-ingress-tcp-2382to4000-masters.dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com.io/cluster/dev.k8s.pk.com: owned}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-ingress-tcp-4003to65535-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        Protocol                tcp
+        FromPort                4003
+        ToPort                  65535
+        SourceGroup             name:nodes.dev.k8s.pk.com
+        Tags                    {kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-nodes.dev.k8s.pk.com-ingress-tcp-4003to65535-masters.dev KubernetesCluster: dev.k8s.pk.com}
+
+  SecurityGroupRule/from-nodes.dev.k8s.pk.com-ingress-udp-1to65535-masters.dev.k8s.pk.com
+        SecurityGroup           name:masters.dev.k8s.pk.com
+        Protocol                udp
+        FromPort                1
+        ToPort                  65535
+        SourceGroup             name:nodes.dev.k8s.pk.com
+        Tags                    {KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, Name: from-nodes.dev.k8s.pk.com-1to65535-masters.dev.k8s.pk.com}
+
+  Subnet/us-east-1a.dev.k8s.pk.com
+        ShortName               us-east-1a
+        VPC                     name:dev.k8s.pk.com
+        AvailabilityZone        us-east-1a
+        CIDR                    172.20.32.0/19
+        Shared                  false
+        Tags                    {kubernetes.io/role/elb: 1, kubernetes.io/role/internal-elb: 1, Name: us-east-1a.dev.k8s.pk.com, KubernetesClustek.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, SubnetType: Public}
+
+  Subnet/us-east-1b.dev.k8s.pk.com
+        ShortName               us-east-1b
+        VPC                     name:dev.k8s.pk.com
+        AvailabilityZone        us-east-1b
+        CIDR                    172.20.64.0/19
+        Shared                  false
+        Tags                    {KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned, SubnetType: Public, kubernetes.i1, kubernetes.io/role/internal-elb: 1, Name: us-east-1b.dev.k8s.pk.com}
+
+  VPC/dev.k8s.pk.com
+        CIDR                    172.20.0.0/16
+        AmazonIPv6              true
+        EnableDNSHostnames      true
+        EnableDNSSupport        true
+        Shared                  false
+        Tags                    {Name: dev.k8s.pk.com, KubernetesCluster: dev.k8s.pk.com, kubernetes.io/cluster/dev.k8s.pk.com: owned}
+
+  VPCAmazonIPv6CIDRBlock/AmazonIPv6
+        VPC                     name:dev.k8s.pk.com
+        Shared                  false
+
+  VPCDHCPOptionsAssociation/dev.k8s.pk.com
+        VPC                     name:dev.k8s.pk.com
+        DHCPOptions             name:dev.k8s.pk.com
+
+  WarmPool/master-us-east-1a.masters.dev.k8s.pk.com
+        Enabled                 false
+        MinSize                 0
+
+  WarmPool/nodes-us-east-1a.dev.k8s.pk.com
+        Enabled                 false
+        MinSize                 0
+
+  WarmPool/nodes-us-east-1b.dev.k8s.pk.com
+        Enabled                 false
+        MinSize                 0
+
+Will modify resources:
+  DNSZone/pk.com
+        PrivateVPC               <nil> -> name:dev.k8s.pk.com
+
+Must specify --yes to apply changes
+
+Cluster configuration has been created.
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster dev.k8s.pk.com
+ * edit your node instance group: kops edit ig --name=dev.k8s.pk.com nodes-us-east-1a
+ * edit your master instance group: kops edit ig --name=dev.k8s.pk.com master-us-east-1a
+
+Finally configure your cluster with: kops update cluster --name dev.k8s.pk.com --yes --admin
+
+[root@ip-172-31-87-113 ec2-user]# kops update cluster --name dev.k8s.pk.com --yes --admin
+I0616 06:46:30.702539    3457 executor.go:111] Tasks: 0 done / 97 total; 45 can run
+W0616 06:46:30.811745    3457 vfs_castore.go:379] CA private key was not found
+I0616 06:46:30.815976    3457 keypair.go:225] Issuing new certificate: "apiserver-aggregator-ca"
+I0616 06:46:30.832049    3457 keypair.go:225] Issuing new certificate: "etcd-manager-ca-main"
+I0616 06:46:30.860551    3457 keypair.go:225] Issuing new certificate: "etcd-peers-ca-events"
+I0616 06:46:30.973597    3457 keypair.go:225] Issuing new certificate: "etcd-clients-ca"
+I0616 06:46:30.993167    3457 keypair.go:225] Issuing new certificate: "etcd-manager-ca-events"
+I0616 06:46:31.013260    3457 keypair.go:225] Issuing new certificate: "etcd-peers-ca-main"
+W0616 06:46:31.154662    3457 vfs_castore.go:379] CA private key was not found
+I0616 06:46:31.506479    3457 keypair.go:225] Issuing new certificate: "kubernetes-ca"
+I0616 06:46:31.528677    3457 keypair.go:225] Issuing new certificate: "service-account"
+I0616 06:46:33.471355    3457 executor.go:111] Tasks: 45 done / 97 total; 20 can run
+I0616 06:46:34.454063    3457 executor.go:111] Tasks: 65 done / 97 total; 29 can run
+I0616 06:46:35.330180    3457 executor.go:111] Tasks: 94 done / 97 total; 3 can run
+I0616 06:46:37.271772    3457 executor.go:155] No progress made, sleeping before retrying 3 task(s)
+I0616 06:46:47.273181    3457 executor.go:111] Tasks: 94 done / 97 total; 3 can run
+I0616 06:46:49.248903    3457 executor.go:111] Tasks: 97 done / 97 total; 0 can run
+I0616 06:46:49.630001    3457 dns.go:238] Pre-creating DNS records
+I0616 06:46:49.918553    3457 update_cluster.go:326] Exporting kubeconfig for cluster
+W0616 06:46:49.918582    3457 create_kubecfg.go:91] Did not find API endpoint for gossip hostname; may not be able to reach cluster
+kOps has set your kubectl context to dev.k8s.pk.com
+
+Cluster is starting.  It should be ready in a few minutes.
+
+Suggestions:
+ * validate cluster: kops validate cluster --wait 10m
+ * list nodes: kubectl get nodes --show-labels
+ * ssh to the master: ssh -i ~/.ssh/id_rsa ubuntu@api.dev.k8s.pk.com
+ * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
+ * read about installing addons at: https://kops.sigs.k8s.io/addons.
+
+[root@ip-172-31-87-113 ec2-user]#
+Every 2.0s: kubectl get nodes                                                                                                        Thu Jun 16 0
+
+NAME                            STATUS   ROLES                  AGE   VERSION
+ip-172-20-43-28.ec2.internal    Ready    control-plane,master   25m   v1.23.7
+ip-172-20-63-183.ec2.internal   Ready    node                   21m   v1.23.7
+ip-172-20-73-171.ec2.internal   Ready    node                   21m   v1.23.7
+Using username "ec2-user".
+Authenticating with public key "imported-openssh-key"
+Last login: Thu Jun 16 06:42:53 2022 from 122.171.91.148
+
+       __|  __|_  )
+       _|  (     /   Amazon Linux 2 AMI
+      ___|\___|___|
+
+https://aws.amazon.com/amazon-linux-2/
+[ec2-user@ip-172-31-87-113 ~]$ sudo  su
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# watch kubectl get nodes
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# ll
+total 0
+[root@ip-172-31-87-113 ec2-user]# yum install git -y
+Loaded plugins: extras_suggestions, langpacks, priorities, update-motd
+amzn2-core                                                                                                                | 3.7 kB  00:00:00
+Resolving Dependencies
+--> Running transaction check
+---> Package git.x86_64 0:2.32.0-1.amzn2.0.1 will be installed
+--> Processing Dependency: perl-Git = 2.32.0-1.amzn2.0.1 for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: git-core-doc = 2.32.0-1.amzn2.0.1 for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: git-core = 2.32.0-1.amzn2.0.1 for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: emacs-filesystem >= 27.1 for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: perl(Term::ReadKey) for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: perl(Git::I18N) for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Processing Dependency: perl(Git) for package: git-2.32.0-1.amzn2.0.1.x86_64
+--> Running transaction check
+---> Package emacs-filesystem.noarch 1:27.2-4.amzn2.0.1 will be installed
+---> Package git-core.x86_64 0:2.32.0-1.amzn2.0.1 will be installed
+---> Package git-core-doc.noarch 0:2.32.0-1.amzn2.0.1 will be installed
+---> Package perl-Git.noarch 0:2.32.0-1.amzn2.0.1 will be installed
+--> Processing Dependency: perl(Error) for package: perl-Git-2.32.0-1.amzn2.0.1.noarch
+---> Package perl-TermReadKey.x86_64 0:2.30-20.amzn2.0.2 will be installed
+--> Running transaction check
+---> Package perl-Error.noarch 1:0.17020-2.amzn2 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+=================================================================================================================================================
+ Package                               Arch                        Version                                 Repository                       Size
+=================================================================================================================================================
+Installing:
+ git                                   x86_64                      2.32.0-1.amzn2.0.1                      amzn2-core                      126 k
+Installing for dependencies:
+ emacs-filesystem                      noarch                      1:27.2-4.amzn2.0.1                      amzn2-core                       67 k
+ git-core                              x86_64                      2.32.0-1.amzn2.0.1                      amzn2-core                      4.8 M
+ git-core-doc                          noarch                      2.32.0-1.amzn2.0.1                      amzn2-core                      2.7 M
+ perl-Error                            noarch                      1:0.17020-2.amzn2                       amzn2-core                       32 k
+ perl-Git                              noarch                      2.32.0-1.amzn2.0.1                      amzn2-core                       43 k
+ perl-TermReadKey                      x86_64                      2.30-20.amzn2.0.2                       amzn2-core                       31 k
+
+Transaction Summary
+=================================================================================================================================================
+Install  1 Package (+6 Dependent packages)
+
+Total download size: 7.8 M
+Installed size: 38 M
+Downloading packages:
+(1/7): git-2.32.0-1.amzn2.0.1.x86_64.rpm                                                                                  | 126 kB  00:00:00
+(2/7): emacs-filesystem-27.2-4.amzn2.0.1.noarch.rpm                                                                       |  67 kB  00:00:00
+(3/7): git-core-doc-2.32.0-1.amzn2.0.1.noarch.rpm                                                                         | 2.7 MB  00:00:00
+(4/7): perl-Error-0.17020-2.amzn2.noarch.rpm                                                                              |  32 kB  00:00:00
+(5/7): git-core-2.32.0-1.amzn2.0.1.x86_64.rpm                                                                             | 4.8 MB  00:00:00
+(6/7): perl-Git-2.32.0-1.amzn2.0.1.noarch.rpm                                                                             |  43 kB  00:00:00
+(7/7): perl-TermReadKey-2.30-20.amzn2.0.2.x86_64.rpm                                                                      |  31 kB  00:00:00
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                             23 MB/s | 7.8 MB  00:00:00
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : git-core-2.32.0-1.amzn2.0.1.x86_64                                                                                            1/7
+  Installing : git-core-doc-2.32.0-1.amzn2.0.1.noarch                                                                                        2/7
+  Installing : 1:perl-Error-0.17020-2.amzn2.noarch                                                                                           3/7
+  Installing : 1:emacs-filesystem-27.2-4.amzn2.0.1.noarch                                                                                    4/7
+  Installing : perl-TermReadKey-2.30-20.amzn2.0.2.x86_64                                                                                     5/7
+  Installing : perl-Git-2.32.0-1.amzn2.0.1.noarch                                                                                            6/7
+  Installing : git-2.32.0-1.amzn2.0.1.x86_64                                                                                                 7/7
+  Verifying  : perl-TermReadKey-2.30-20.amzn2.0.2.x86_64                                                                                     1/7
+  Verifying  : git-core-doc-2.32.0-1.amzn2.0.1.noarch                                                                                        2/7
+  Verifying  : perl-Git-2.32.0-1.amzn2.0.1.noarch                                                                                            3/7
+  Verifying  : 1:emacs-filesystem-27.2-4.amzn2.0.1.noarch                                                                                    4/7
+  Verifying  : git-2.32.0-1.amzn2.0.1.x86_64                                                                                                 5/7
+  Verifying  : git-core-2.32.0-1.amzn2.0.1.x86_64                                                                                            6/7
+  Verifying  : 1:perl-Error-0.17020-2.amzn2.noarch                                                                                           7/7
+
+Installed:
+  git.x86_64 0:2.32.0-1.amzn2.0.1
+
+Dependency Installed:
+  emacs-filesystem.noarch 1:27.2-4.amzn2.0.1       git-core.x86_64 0:2.32.0-1.amzn2.0.1       git-core-doc.noarch 0:2.32.0-1.amzn2.0.1
+  perl-Error.noarch 1:0.17020-2.amzn2              perl-Git.noarch 0:2.32.0-1.amzn2.0.1       perl-TermReadKey.x86_64 0:2.30-20.amzn2.0.2
+
+Complete!
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# git clone https://github.com/prasantaaws1/kubernetes-exercises-1.git
+Cloning into 'kubernetes-exercises-1'...
+warning: You appear to have cloned an empty repository.
+[root@ip-172-31-87-113 ec2-user]#
+[root@ip-172-31-87-113 ec2-user]# ls
+kubernetes-exercises-1
+[root@ip-172-31-87-113 ec2-user]# cd kubernetes-exercises-1/
+[root@ip-172-31-87-113 kubernetes-exercises-1]#
+[root@ip-172-31-87-113 kubernetes-exercises-1]# vim first-pod.yml
+[root@ip-172-31-87-113 kubernetes-exercises-1]# cat first-pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp
+spec:
+  containers:
+    - name: webapp
+      image: richardchesterwood/k8s-fleetman-webapp-angular:release0
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   100.64.0.1   <none>        443/TCP   105m
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl apply -f first-pod.yml
+pod/webapp created
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl get all
+NAME         READY   STATUS    RESTARTS   AGE
+pod/webapp   1/1     Running   0          9s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   100.64.0.1   <none>        443/TCP   106m
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl describe pod/webapp
+Name:         webapp
+Namespace:    default
+Priority:     0
+Node:         ip-172-20-73-171.ec2.internal/172.20.73.171
+Start Time:   Thu, 16 Jun 2022 08:36:07 +0000
+Labels:       <none>
+Annotations:  kubernetes.io/limit-ranger: LimitRanger plugin set: cpu request for container webapp
+Status:       Running
+IP:           100.96.2.3
+IPs:
+  IP:  100.96.2.3
+Containers:
+  webapp:
+    Container ID:   containerd://8c282ff8feed269bc0449b3b627bdb149117a74e3ff1111148e509267bd3662c
+    Image:          richardchesterwood/k8s-fleetman-webapp-angular:release0
+    Image ID:       docker.io/richardchesterwood/k8s-fleetman-webapp-angular@sha256:9b98fec20772bd1d7d4c9085048f28af35b31ad3a7b7d3ba395fb512c5c359e6
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Thu, 16 Jun 2022 08:36:09 +0000
+    Ready:          True
+    Restart Count:  0
+    Requests:
+      cpu:        100m
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-t5ksv (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  kube-api-access-t5ksv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  3m9s  default-scheduler  Successfully assigned default/webapp to ip-172-20-73-171.ec2.internal
+  Normal  Pulling    3m8s  kubelet            Pulling image "richardchesterwood/k8s-fleetman-webapp-angular:release0"
+  Normal  Pulled     3m7s  kubelet            Successfully pulled image "richardchesterwood/k8s-fleetman-webapp-angular:release0" in 1.35287409s
+  Normal  Created    3m7s  kubelet            Created container webapp
+  Normal  Started    3m7s  kubelet            Started container webapp
+[root@ip-172-31-87-113 kubernetes-exercises-1]#
+[root@ip-172-31-87-113 kubernetes-exercises-1]#
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl exec webapp ls
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+bin
+dev
+etc
+home
+lib
+media
+mnt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+[root@ip-172-31-87-113 kubernetes-exercises-1]# kubectl exec -it webapp sh
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
+/ # ls
+bin    dev    etc    home   lib    media  mnt    proc   root   run    sbin   srv    sys    tmp    usr    var
+/ # ll
+sh: ll: not found
+/ # ls var/
+cache  empty  lib    local  lock   log    opt    run    spool  tmp
+/ # cd ..
+/ # pwd
+/
+/ # wget http://localhost:80
+Connecting to localhost:80 (127.0.0.1:80)
+index.html           100% |************************************************************************************************|   585   0:00:00 ETA
+/ # cat index.html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fleet Management</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+</head>
+<body>
+  <app-root></app-root>
+<script type="text/javascript" src="runtime.js"></script><script type="text/javascript" src="polyfills.js"></script><script type="text/javascript" src="styles.js"></script><script type="text/javascript" src="vendor.js"></script><script type="text/javascript" src="main.js"></script></body>
+</html>
+/ #
+/ #
+/ # exit
+[root@ip-172-31-87-113 kubernetes-exercises-1]#
+[root@ip-172-31-87-113 kubernetes-exercises-1]# git status
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        first-pod.yml
+
+nothing added to commit but untracked files present (use "git add" to track)
+[root@ip-172-31-87-113 kubernetes-exercises-1]# vi terminal-output-1
+
